@@ -403,6 +403,12 @@ class TickerBase():
             df.index.name = 'Quarter'
             self._earnings['quarterly'] = df
 
+        data = utils.get_json(ticker_url+'/holdings', proxy)
+        if 'topHoldings' in data:
+          sectors = data['topHoldings']['sectorWeightings']
+          sectors = [list(k.items())[0] for k in sectors]
+          df = _pd.DataFrame(data=sectors, columns=['sector', 'weight'])
+          self._sectors = df
         self._fundamentals = True
 
     def get_recommendations(self, proxy=None, as_dict=False, *args, **kwargs):
@@ -459,6 +465,13 @@ class TickerBase():
     def get_earnings(self, proxy=None, as_dict=False, freq="yearly"):
         self._get_fundamentals(proxy=proxy)
         data = self._earnings[freq]
+        if as_dict:
+            return data.to_dict()
+        return data
+
+    def get_sectors(self, proxy=None, as_dict=False):
+        self._get_fundamentals(proxy=proxy)
+        data = self._sectors
         if as_dict:
             return data.to_dict()
         return data
